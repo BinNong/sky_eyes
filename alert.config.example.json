@@ -1,0 +1,55 @@
+{
+  "_说明": [
+    "告警推送配置模板。复制成 alert.config.json（该文件已被 .gitignore 忽略）再填真实值。",
+    "优先级：命令行参数 > 环境变量 > 本文件 > 内置默认。",
+    "",
+    "四个通道任选一个，按 channel 字段切换：",
+    "  wecom     企业微信「消息推送」（原群机器人）—— 多数企业需要管理员放权，群主也未必建得出来",
+    "  dingtalk  钉钉自定义机器人 —— 群成员即可添加",
+    "  feishu    飞书自定义机器人 —— 群成员即可添加",
+    "  smtp      邮件 —— 只要有邮箱，零审批",
+    "",
+    "⚠ 钉钉/飞书的自定义机器人**发不了图**（没有图片消息类型），只会发文字卡片；",
+    "   smtp 会把现场图作为附件带上；只有企业微信能图文两条一起发。",
+    "",
+    "也可以完全不用这个文件，改用环境变量（优先级更高），例如：",
+    "  export SKYEYES_ALERT_CHANNEL=dingtalk",
+    "  export SKYEYES_ALERT_URL='https://oapi.dingtalk.com/robot/send?access_token=xxx'",
+    "  export SKYEYES_ALERT_SECRET='SECxxxx'"
+  ],
+
+  "_channel说明": "wecom | dingtalk | feishu | smtp",
+  "channel": "wecom",
+
+  "_url说明": "目标地址。钉钉/飞书/企微都是「群设置里复制出来的那个 URL」",
+  "url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=在此填入群机器人的key",
+
+  "_secret说明": "加签密钥。钉钉/飞书的安全设置选了「加签」时才需要；选了「关键词」就留空。留空则不发签名",
+  "secret": null,
+
+  "_min_severity说明": "推送的等级下限，低/中/高。内置默认「高」——「未判定」永远不推",
+  "min_severity": "高",
+
+  "_with_image说明": "是否附现场图。企微直发图片、smtp 作附件；钉钉/飞书不支持，会自动跳过并如实标注",
+  "with_image": true,
+
+  "_max_per_run说明": "一次分析最多推送几条（撞上限时优先推最严重的）。平台限 20 条/分钟",
+  "max_per_run": 5,
+
+  "_use_proxy说明": "true = 跟随 HTTPS_PROXY 环境变量（公司网络里通常需要）；本机自测可设 false",
+  "use_proxy": true,
+
+  "--- 以下是 channel = smtp 时才需要的 ---": "分割线，不是有效字段",
+
+  "_smtp_host说明": "SMTP 服务器。QQ 邮箱 smtp.qq.com / 163 smtp.163.com / 企业邮箱按 IT 给的填",
+  "smtp_host": null,
+  "_smtp_port说明": "465 = SSL（默认）；587 = STARTTLS，这时要把 smtp_starttls 设成 true",
+  "smtp_port": 465,
+  "_smtp_user说明": "登录账号（通常是完整邮箱地址）",
+  "smtp_user": null,
+  "_smtp_password说明": "⚠ 不是邮箱登录密码，是「SMTP 授权码」。QQ/163 都要在邮箱设置里单独开启并生成",
+  "smtp_password": null,
+  "_smtp_to说明": "收件人，多个用逗号分隔",
+  "smtp_to": ["oncall@example.com"],
+  "smtp_starttls": false
+}

@@ -1,0 +1,75 @@
+# Python 字节码。写通配的 `__pycache__/` 而不是逐个目录列——
+# 逐个列的结果就是根目录那个一直漏着（它是最容易被忽略的一个）。
+__pycache__/
+*.py[cod]
+
+# 实时推理后端：独立 venv，不装 torch，按需重建（./scripts/serve_api.sh）
+server/.venv/
+
+# ══════════════════════════════════════════════════════════════════════════
+#  以下为「不进版本库的重资产」。
+#  本仓库只放**代码与文档**：模型权重、运行产物、原始素材、前端演示数据、
+#  参赛交付物的二进制成品一律不入库。clone 后按 readme.md 重新生成或另行索取。
+#
+#  ⚠ 这些目录名都带前置 `/`（只匹配仓库根）。不带前缀会匹配**任意层级**同名目录：
+#     写 `models/`  → 连 `janus/models/`（多模态模型代码）一起忽略掉
+#     写 `output/`  → 连 `web/src/output/` 之类一起忽略掉
+#  这个坑真的踩过：janus/models/*.py 曾被静默排除，而 `git status` 不会提示。
+# ══════════════════════════════════════════════════════════════════════════
+
+# YOLO 事故检测权重（19 MB）。detector.py 的 DEFAULT_WEIGHTS 指向 models/trained_model.pt，
+# 缺它时检测阶段直接抛 FileNotFoundError（不静默降级）。放回该路径即可，或用 -w 指定。
+/models/
+
+# 运行产物：抽帧图（accident_frames/，300 张）、标注视频（detections.mp4，32 MB）、
+# 每次分析一个目录的 runs/（单个 run 几十 MB）、以及分析报告 JSON。
+# 跑一次 `pipeline.py` 即可重建。
+/output/
+
+# 原始监控素材视频。
+/source/
+
+# 前端演示数据与大屏媒体。离线大屏全靠它们，但体积大且都能由脚本重建：
+#   抽样标注集  scripts/make_label_set.py
+#   演示数据    scripts/export_demo_data.py
+#   检索索引    scripts/build_search_index.py（向量 + 缩略图）
+# 缺这些时前端仍能起，只是标注页与检索页没有数据。
+web/public/data/
+web/public/labeling/
+web/public/frames/
+web/public/media/
+
+# ── 其余为运行期数据与凭证 ────────────────────────────────────────────────
+
+# 人工复核记录（server/feedback.py 写的）：运行期数据，不进版本库。
+# 它是人工成本的沉淀，删掉要重新标一遍——但也不该跟着代码走。
+/feedback/
+
+# 真值标注的答案（server/labeling.py 写的）。
+# 前置的斜杠是必须的：写 `labeling/` 会连 web/public/labeling/ 一起忽略掉
+# （后者是演示用抽样集，已由上面 web/public/ 的规则单独处理）。
+/labeling/
+
+# 参赛材料整目录不入库：方案 HTML / PDF / Word 与提交清单里含参赛者姓名、指导教师
+# 与院校名，属个人信息；且成品可由 submission/*.html + make_word_version.py 重新生成。
+# 材料原件留在本地，需要分享时另行提供。
+submission/
+
+# 告警通道的目标地址与加签密钥（企微 ?key= / 钉钉 ?access_token= / 飞书路径末段，
+# 以及 smtp 的授权码）。**拿到任何一个都能以系统名义往群里发消息，绝不能进版本库。**
+# 模板见 alert.config.example.json。
+alert.config.json
+
+# 开发过程记忆（.workbuddy/memory/）：含服务器地址、账号、部署细节等本地信息，
+# 属开发者私有状态，不进公开仓库。
+.workbuddy/
+
+# 前端
+web/node_modules/
+web/dist/
+web/.vite/
+
+# macOS / 编辑器
+.DS_Store
+.idea/
+.vscode/

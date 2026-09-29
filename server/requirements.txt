@@ -1,0 +1,7 @@
+# 实时推理后端的依赖。
+#
+# 刻意**不装 torch / ultralytics / opencv**：那些在 visual_search conda 环境里，
+# 由 pipeline.py 子进程使用。Web 层只负责编排与转发，保持轻量。
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+httpx>=0.27,<1

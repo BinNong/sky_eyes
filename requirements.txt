@@ -1,0 +1,9 @@
+pillow~=9.5.0
+torch~=2.0.1
+transformers~=4.30.2
+torchvision~=0.15.2
+einops~=0.8.0
+numpy~=1.25.2
+opencv-python~=4.8.0.74
+ultralytics~=8.3.76
+requests~=2.32.3

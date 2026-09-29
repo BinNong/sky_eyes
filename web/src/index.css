@@ -1,0 +1,222 @@
+@import 'tailwindcss';
+
+/* 深色科技风 design token —— 规范见 DEMO_PLAN.md §6.1
+   这里定义后 Tailwind 会生成 bg-base / text-ink / border-hair 之类的工具类，
+   组件里直接用类名，不要写 hex 字面量。 */
+@theme {
+  --color-base: #070b14;
+  --color-panel: #0f1626;
+  --color-raised: #16203a;
+
+  --color-hair: rgba(255, 255, 255, 0.08);
+  --color-line: rgba(255, 255, 255, 0.14);
+  --color-strong: rgba(255, 255, 255, 0.24);
+
+  --color-ink: #e8eef9;
+  --color-ink-dim: #93a2bf;
+  --color-ink-faint: #5b6b8c;
+
+  --color-accent: #22d3ee;
+  --color-accent-dim: rgba(34, 211, 238, 0.14);
+
+  --color-sev-high: #ff4d4f;
+  --color-sev-mid: #ffa940;
+  --color-sev-low: #40a9ff;
+
+  /* 等宽字体，只用于数字、代码与 HUD。
+     刻意**不引入任何网络字体**：这个 demo 要能断网跑完整流程，挂一个 CDN 字体就破了这条底线
+     （已用 performance.getEntriesByType('resource') 断言全站 0 个跨域请求）。
+     平台自带的等宽栈本身就有很强的"仪表盘"气质，够用。
+     注：早先这里写着 'JetBrains Mono'，但那个字体从未被加载——token 名不副实，
+     属于评审里记的 F9，现已改成实际生效的栈。 */
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-base);
+    color: var(--color-ink);
+    font-family:
+      system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgba(34, 211, 238, 0.3);
+  }
+
+  /* 深色底下的滚动条，默认的太亮会跳出画面 */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  /* 大屏上的数字用等宽 + tabular-nums，否则实时刷新时会左右抖动 */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 实时脉冲，只给"正在发生的事"用，别铺满整屏（§6.1 硬规矩） */
+  .pulse-ring {
+    animation: pulse-ring 800ms ease-out 1;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 currentColor;
+      opacity: 1;
+    }
+    100% {
+      box-shadow: 0 0 0 14px transparent;
+      opacity: 0.85;
+    }
+  }
+
+  /* ── 氛围层 ──
+     设计规范明确反对"纯色平背景、零纹理零氛围"，但这是运维大屏不是营销落地页，
+     强度必须压到"刚好能感觉到有层次"就停：三个角上的径向辉光 alpha 都在 0.05 上下，
+     再叠一层 48px 的细网格（0.028）。实测正文对比度不受影响。
+     `pointer-events: none` 保证它不吃任何点击。 */
+  .atmosphere::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(70rem 45rem at 6% -14%, rgba(34, 211, 238, 0.07), transparent 62%),
+      radial-gradient(56rem 40rem at 104% 4%, rgba(59, 130, 246, 0.06), transparent 58%),
+      radial-gradient(60rem 50rem at 50% 120%, rgba(139, 92, 246, 0.05), transparent 60%);
+  }
+
+  .atmosphere::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+    background-size: 48px 48px;
+    /* 网格往画面下方淡出，避免整屏均匀铺满显得像没对齐的表格 */
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 78%);
+  }
+
+  /* ── 一次编排的入场序列 ──
+     规范原话："一次编排好的入场序列，胜过一堆零散微交互"。
+     这里只做三组（每行一组），错峰 110ms —— 屏幕按"指标条 → 主画面 → 时间轴"
+     的顺序装配出来，而不是所有元素一起闪现。 */
+  .reveal {
+    animation: reveal-in 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes reveal-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ── 视频框自适应（重要）──
+     16:9 的视频框放进"高度由视口决定"的弹性列里，必然要在
+     「按宽度铺满」和「按高度铺满」之间取舍。早先的做法是
+     `shrink-0` + `aspect-ratio`：高度由**列宽**推导，于是窗口"宽而矮"时
+     （1600×900、1440×620 这类很常见的尺寸）视频过高，把下方控件条挤出
+     `overflow-hidden` 的边界——**连「开始演示」按钮都在界面上不存在**。
+     实测 1600×900 下面板内容高 671px、可视仅 560px，被裁掉 106px。
+
+     解法：`video-fit` 建立容器查询上下文，`video-box` 用 cq 单位取两者的小值，
+     高度再由 aspect-ratio 推导——框始终等于视频的实际显示区域，
+     所以百分比定位的检测框不会错位，控件条也永远留在视野内。 */
+  .video-fit {
+    container-type: size;
+  }
+
+  .video-box {
+    /* 第一行是兜底：万一 cq 单位不被支持，至少保持原有的"按宽铺满"行为 */
+    width: 100%;
+    aspect-ratio: var(--ar, 16 / 9);
+    width: min(100cqw, calc(100cqh * var(--ar-num, 1.7778)));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-ring {
+      animation: none;
+    }
+    .reveal {
+      animation: none;
+    }
+    .atmosphere::after {
+      display: none;
+    }
+  }
+}
+
+@layer base {
+  /* 键盘焦点必须看得见（规范：2px 实线 + 2px 偏移）。
+     深色底上默认的 focus ring 在部分浏览器里几乎不可见，演示机接投影仪后更糟。 */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* 鼠标点击不该出现焦点圈，只有键盘导航才显示 */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* 打印事故简报：屏幕上是深色仪表盘，打印出来必须是一张白纸公文。
+   用 visibility 技巧——只把 .print-area 那张"纸"露出来。 */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    margin: 14mm;
+  }
+}
